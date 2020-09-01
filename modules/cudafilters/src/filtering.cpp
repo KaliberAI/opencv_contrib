@@ -340,6 +340,7 @@ namespace
                               Point anchor, int rowBorderMode, int columnBorderMode);
 
         void apply(InputArray src, OutputArray dst, Stream& stream = Stream::Null());
+        void apply(const GpuMat& src, GpuMat& dst, GpuMat& buf, Stream& stream = Stream::Null());
 
     private:
         typedef void (*func_t)(PtrStepSzb src, PtrStepSzb dst, const float* kernel, int ksize, int anchor, int brd_type, int cc, cudaStream_t stream);
@@ -433,6 +434,21 @@ namespace
 
         rowFilter_(src, buf_, rowKernel_.ptr<float>(), rowKernel_.cols, anchor_.x, rowBorderMode_, cc, stream);
         columnFilter_(buf_, dst, columnKernel_.ptr<float>(), columnKernel_.cols, anchor_.y, columnBorderMode_, cc, stream);
+    }
+
+    void SeparableLinearFilter::apply(const GpuMat& _src, GpuMat& _dst, GpuMat& buf, Stream& _stream)
+    {
+        DeviceInfo devInfo;
+        const int cc = devInfo.majorVersion() * 10 + devInfo.minorVersion();
+
+        cudaStream_t stream = StreamAccessor::getStream(_stream);
+
+        if (_dst.data == nullptr) {
+            CV_Error(Error::StsNullPtr, "Destination data not allocated");
+        }
+
+        rowFilter_(_src, buf, rowKernel_.ptr<float>(), rowKernel_.cols, anchor_.x, rowBorderMode_, cc, stream);
+        columnFilter_(buf, _dst, columnKernel_.ptr<float>(), columnKernel_.cols, anchor_.y, columnBorderMode_, cc, stream);
     }
 }
 

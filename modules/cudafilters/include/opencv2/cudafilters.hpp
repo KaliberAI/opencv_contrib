@@ -82,6 +82,12 @@ public:
     @param stream Stream for the asynchronous version.
      */
     CV_WRAP virtual void apply(InputArray src, OutputArray dst, Stream& stream = Stream::Null()) = 0;
+
+    CV_WRAP virtual void apply(const GpuMat& src, GpuMat& dst, GpuMat& buf, Stream& stream = Stream::Null()) {
+        std::stringstream ss;
+        ss << __FUNCTION__ << " is not implemented for this class";
+        CV_Error(Error::StsNotImplemented, ss.str());
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
